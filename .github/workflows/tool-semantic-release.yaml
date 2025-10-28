@@ -1,0 +1,278 @@
+name: Semantic-Release
+
+on:
+  workflow_call:
+    inputs:
+      semantic_version:
+        required: true
+        type: string
+      semantic_release_mode:
+        required: true
+        type: string
+
+# permissions:
+#   contents: read # for checkout
+
+jobs:
+  release-standard:
+    name: release-standard
+    if: ${{ inputs.semantic_release_mode == 'standard' }}
+    runs-on:
+      group: Temporal-Github
+    permissions:
+      contents: write # to be able to publish a GitHub release
+      issues: write # to be able to comment on released issues
+      pull-requests: write # to be able to comment on released pull requests
+      id-token: write # to enable use of OIDC for npm provenance
+    steps:
+      # - name: Set timezone to Bogota
+      #   run: |
+      #     sudo timedatectl set-timezone America/Bogota
+      #   env:
+      #     TZ: America/Bogota
+      - name: Generate token
+        id: generate_token
+        uses: tibdex/github-app-token@32691ba7c9e7063bd457bd8f2a5703138591fa58 #v1.9.0
+        with:
+          app_id: ${{ secrets.APP_ID_TOOLKIT_OPENSOURCE }}
+          private_key: ${{ secrets.APP_PRIVATEKEY_TOOLKIT_OPENSOURCE }}
+      - name: Set token for GitHub CLI
+        run: echo "GITHUB_TOKEN=${{ steps.generate_token.outputs.token }}" >> $GITHUB_ENV
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
+        with:
+          fetch-tags: "true"
+          token: ${{ steps.generate_token.outputs.token }}
+      # - name: Load properties of repository
+      #   env:
+      #     GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
+      #   run: |
+      #     npm i @octokit/core@7.0.2
+      #     node load-props-repository.mjs ${{ github.repository_owner }} ${{ github.event.repository.name }}
+      - name: Load properties of repository
+        run: |
+          gh api -H "Accept: application/vnd.github+json" \
+           -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/${{ github.repository_owner }}/${{ github.event.repository.name }}/properties/values --jq '.[] | "\(.property_name | ascii_upcase)=\(.value)"' \
+            >> $GITHUB_ENV    
+      # echo "Hola ${{inputs.semantic_version}}"
+      # - name: Evaluate if property SEMANTIC_RELEASE_MODE is ENABLED or DISABLED
+      #   run: |
+      #     if [ "$SEMANTIC_RELEASE_MODE" = "DISABLED" ]; then
+      #       echo "🚫 Job stop: semantic-release is DISABLED"
+      #       exit 0 # o exit 1 si quieres que el job falle visiblemente
+      #     else
+      #       echo "✅ Job continue: semantic-release is ENABLED"
+      #     fi
+      - name: Download files of configuration
+        run: |
+          TOKEN=$(gh auth token)
+          #curl -L -H "Authorization: token $TOKEN" \
+          #     -H "Accept: application/vnd.github.v3.raw" \
+          #     https://api.github.com/repos/bancolombia/demo-documentacion/contents/Tools/Semantic-Release/semantic-release.zip?ref=feature/semantic-release \
+          #     -o semantic-release.zip
+            if [ "${{inputs.semantic_version}}" = "latest" ]; then
+             gh release download --pattern '*.zip' --repo bancolombia/demo-documentacion
+            else
+             gh release download ${{inputs.semantic_version}} --pattern '*.zip' --repo bancolombia/demo-documentacion
+            fi
+          unzip semantic-release.zip
+          rm -f package.json package-lock.json # para evitar conflictos con el semantic-release
+          #ls
+          #cat release.config.js
+      - name: Setup Node.js
+        uses: actions/setup-node@3235b876344d2a9aa001b8d1453c930bba69e610 #v3.9.1
+        with:
+          node-version: "lts/*"
+      - name: Release
+        env:
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
+          GIT_COMMITTER_EMAIL: "oficina_open_source@bancolombia.com.co"
+          GIT_AUTHOR_EMAIL: "oficina_open_source@bancolombia.com.co"
+        run: |
+          npx -p semantic-release -p @semantic-release/git -p @semantic-release/changelog -p @semantic-release/exec semantic-release
+
+  release-issue-label:
+    name: release-issue-label
+    if: ${{ inputs.semantic_release_mode == 'issue-label' }}
+    runs-on:
+      group: Temporal-Github
+    permissions:
+      contents: write # para crear el GitHub Release
+      issues: write # para leer/comments en issues (por si acaso)
+      pull-requests: write # idem en PRs
+      id-token: write # para npm provenance
+    steps:
+      - name: Generate token
+        id: generate_token
+        uses: tibdex/github-app-token@32691ba7c9e7063bd457bd8f2a5703138591fa58 #v1.9.0
+        with:
+          app_id: ${{ secrets.APP_ID_TOOLKIT_OPENSOURCE }}
+          private_key: ${{ secrets.APP_PRIVATEKEY_TOOLKIT_OPENSOURCE }}
+      - name: Set token for GitHub CLI
+        run: echo "GITHUB_TOKEN=${{ steps.generate_token.outputs.token }}" >> $GITHUB_ENV
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
+        with:
+          fetch-tags: "true"
+          token: ${{ steps.generate_token.outputs.token }}
+      # - name: Load properties of repository
+      #   env:
+      #     GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
+      #   run: |
+      #     npm i @octokit/core@7.0.2
+      #     node load-props-repository.mjs ${{ github.repository_owner }} ${{ github.event.repository.name }}
+      - name: Load properties of repository
+        run: |
+          gh api -H "Accept: application/vnd.github+json" \
+           -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/${{ github.repository_owner }}/${{ github.event.repository.name }}/properties/values --jq '.[] | "\(.property_name | ascii_upcase)=\(.value)"' \
+            >> $GITHUB_ENV
+
+      - name: Download files of configuration
+        run: |
+          TOKEN=$(gh auth token)
+          #curl -L -H "Authorization: token $TOKEN" \
+          #     -H "Accept: application/vnd.github.v3.raw" \
+          #     https://api.github.com/repos/bancolombia/demo-documentacion/contents/Tools/Semantic-Release/semantic-release.zip?ref=feature/semantic-release \
+          #     -o semantic-release.zip
+            if [ "${{inputs.semantic_version}}" = "latest" ]; then
+             gh release download --pattern '*.zip' --repo bancolombia/demo-documentacion
+            else
+             gh release download ${{inputs.semantic_version}} --pattern '*.zip' --repo bancolombia/demo-documentacion
+            fi
+          unzip semantic-release.zip
+          rm -f package.json package-lock.json # para evitar conflictos con el semantic-release
+          #ls
+          #cat release.config.js
+      - name: Setup Node.js
+        uses: actions/setup-node@3235b876344d2a9aa001b8d1453c930bba69e610 #v3.9.1
+        with:
+          node-version: "lts/*"
+
+      - name: Get PR & Issue info
+        id: get_info
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ steps.generate_token.outputs.token }}
+          script: |
+            // 1) Extraer mensaje del último commit (debe ser el merge)
+            const head = context.payload.head_commit;
+            const msg  = head?.message || '';
+            const prMatch = msg.match(/Merge pull request #(\d+)/);
+            if (!prMatch) {
+              core.info('Este commit no es un merge de PR o no encontró número de PR.');
+              process.exit(1);
+            }
+            const prNumber = Number(prMatch[1]);
+
+            // 2) Leer el PR para obtener su descripción
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo:  context.repo.repo,
+              pull_number: prNumber
+            });
+            const body = pr.body || '';
+
+            // 3) Extraer el número de issue referenciado en la descripción
+            const issueMatch = body.match(/#(\d+)/);
+            if (!issueMatch) {
+              core.setFailed(`PR #${prNumber} no referencia ningún issue.`);
+            }
+            const issueNumber = Number(issueMatch[1]);
+
+            // 4) Leer el issue (estado + etiquetas) UNA SOLA VEZ
+            const { data: issue } = await github.rest.issues.get({
+              owner:        context.repo.owner,
+              repo:         context.repo.repo,
+              issue_number: issueNumber
+            });
+
+            // 5) Buscar etiqueta que empiece por 'c:' para el release
+            const labels = issue.labels.map(l => l.name);
+            const found = labels.find(l => l.startsWith('c:'));
+            if (!found) {
+              core.setFailed(`Issue #${issueNumber} no tiene etiqueta que empiece por 'c:'.`);
+            }
+            core.setOutput('issue_label', found);
+
+            // 6) Comprobar si antes de la referencia aparece alguna de las keywords
+            const issueRefIndex = body.indexOf(issueMatch[0]);
+            const beforeIssue = body.slice(0, issueRefIndex);
+            const closingPattern = /\b(close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved)\b/i;
+            if (!closingPattern.test(beforeIssue)) {
+              core.info(`No se encontró palabra clave de cierre antes de la referencia al issue (#${issueNumber}). No se cerrará.`);
+            } else {
+              core.info(`Se detectó keyword de cierre antes de la referencia al issue (#${issueNumber}). Procediendo a cerrar.`);
+              // 7) Cierra el issue si no lo está
+              if (issue.state !== 'closed') {
+                await github.rest.issues.update({
+                  owner:        context.repo.owner,
+                  repo:         context.repo.repo,
+                  issue_number: issueNumber,
+                  state:        'closed'
+                });
+                core.info(`Issue #${issueNumber} cerrado automáticamente.`);
+              } else {
+                core.info(`Issue #${issueNumber} ya estaba cerrado.`);
+              }
+            }
+
+      - name: Get author data from push
+        id: get_author_data
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ steps.generate_token.outputs.token }}
+          script: |
+            // 1) Login de quien hizo el push
+            const username = context.actor;
+            if (!username) {
+              core.setFailed('No pude determinar el actor del push (context.actor).');
+            }
+
+            // 2) Llamada a la API para obtener datos públicos
+            const { data: user } = await github.rest.users.getByUsername({ username });
+
+            // 3) Debug en logs
+            console.log(`The push author user is: ${user.login}`);
+            console.log(`The push author email is: ${user.email}`);
+
+            // 4) Seterar salidas para pasos siguientes
+            core.setOutput('author_user', user.login);
+            core.setOutput('author_mail', user.email || '');
+
+      - name: Create release trigger commit
+        env:
+          ISSUE_LABEL: ${{ steps.get_info.outputs.issue_label }}
+          GIT_AUTHOR_USER: ${{ steps.get_author_data.outputs.author_user }}
+          GIT_AUTHOR_EMAIL: ${{ steps.get_author_data.outputs.author_mail }}
+        run: |
+          # Mapear etiqueta de issue → tipo de commit (y por ende bump)
+          case "${ISSUE_LABEL}" in
+            c:bug)
+              TYPE=fixpatchrelease ;;
+            c:vulns)
+              TYPE=securitypatchrelease ;;
+            c:new-feature)
+              TYPE=featurerelease ;;
+            c:breaking-change)
+              TYPE=breakingrelease ;;
+            *)
+              echo "The label don't execute the semantic release: ${ISSUE_LABEL}"
+              exit 1 ;;
+          esac
+
+          echo "Creating dummy commit of type '$TYPE' for ${ISSUE_LABEL}"
+          git config --local user.name  "${GIT_AUTHOR_USER}"
+          git config --local user.email "${GIT_AUTHOR_EMAIL}"
+          git commit --allow-empty -m "$TYPE: release bump for ${ISSUE_LABEL}"
+
+      - name: Semantic Release
+        env:
+          ISSUE_LABEL: ${{ steps.get_info.outputs.issue_label }}
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
+          GIT_AUTHOR_USER: ${{ steps.get_author_data.outputs.author_user }}
+          GIT_AUTHOR_EMAIL: ${{ steps.get_author_data.outputs.author_mail }}
+        run: |
+          echo "Running semantic-release for label: $ISSUE_LABEL"
+          npx -p semantic-release -p @semantic-release/git -p @semantic-release/changelog -p @semantic-release/exec semantic-release
