@@ -69,12 +69,12 @@ jobs:
           TOKEN=$(gh auth token)
           #curl -L -H "Authorization: token $TOKEN" \
           #     -H "Accept: application/vnd.github.v3.raw" \
-          #     https://api.github.com/repos/bancolombia/demo-documentacion/contents/Tools/Semantic-Release/semantic-release.zip?ref=feature/semantic-release \
+          #     https://api.github.com/repos/bancolombia/semantic-bancolombia/contents/Tools/Semantic-Release/semantic-release.zip?ref=feature/semantic-release \
           #     -o semantic-release.zip
             if [ "${{inputs.semantic_version}}" = "latest" ]; then
-             gh release download --pattern '*.zip' --repo bancolombia/demo-documentacion
+             gh release download --pattern '*.zip' --repo bancolombia/semantic-bancolombia
             else
-             gh release download ${{inputs.semantic_version}} --pattern '*.zip' --repo bancolombia/demo-documentacion
+             gh release download ${{inputs.semantic_version}} --pattern '*.zip' --repo bancolombia/semantic-bancolombia
             fi
           unzip semantic-release.zip
           rm -f package.json package-lock.json # para evitar conflictos con el semantic-release
@@ -134,12 +134,12 @@ jobs:
           TOKEN=$(gh auth token)
           #curl -L -H "Authorization: token $TOKEN" \
           #     -H "Accept: application/vnd.github.v3.raw" \
-          #     https://api.github.com/repos/bancolombia/demo-documentacion/contents/Tools/Semantic-Release/semantic-release.zip?ref=feature/semantic-release \
+          #     https://api.github.com/repos/bancolombia/semantic-bancolombia/contents/Tools/Semantic-Release/semantic-release.zip?ref=feature/semantic-release \
           #     -o semantic-release.zip
             if [ "${{inputs.semantic_version}}" = "latest" ]; then
-             gh release download --pattern '*.zip' --repo bancolombia/demo-documentacion
+             gh release download --pattern '*.zip' --repo bancolombia/semantic-bancolombia
             else
-             gh release download ${{inputs.semantic_version}} --pattern '*.zip' --repo bancolombia/demo-documentacion
+             gh release download ${{inputs.semantic_version}} --pattern '*.zip' --repo bancolombia/semantic-bancolombia
             fi
           unzip semantic-release.zip
           rm -f package.json package-lock.json # para evitar conflictos con el semantic-release
