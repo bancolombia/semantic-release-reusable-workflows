@@ -65,6 +65,7 @@ Determina el tipo de release basándose en etiquetas de issues vinculados al Pul
 
 ```yaml
 name: Semantic-Release
+
 on:
   push:
     branches:
@@ -78,10 +79,10 @@ on:
         - 'docs/**'
 
 permissions:
-  contents: write 
-  issues: write 
-  pull-requests: write 
-  id-token: write 
+  contents: write # to be able to publish a GitHub release
+  issues: write # to be able to comment on released issues
+  pull-requests: write # to be able to comment on released pull requests
+  id-token: write # to enable use of OIDC for npm provenance
 
 jobs:
   load-vars:
@@ -95,12 +96,22 @@ jobs:
     secrets: inherit
     with:
       semantic_version: ${{ needs.load-vars.outputs.SEMREL_VERSION }}
+      semantic_release_mode: ${{ needs.load-vars.outputs.SEMREL_MODE }}
 ```
 
-2. **Configurar propiedades del repositorio** (opcionales):
+Este workflow utiliza dos jobs:
+- **`load-vars`**: Carga las propiedades del repositorio y determina la configuración
+- **`call-workflow-semantic-release`**: Ejecuta el release solo si `SEMREL_MODE != 'disabled'`
 
-Las siguientes propiedades se pueden configurar en el repositorio de GitHub:
+2. **Configurar propiedades del repositorio**:
 
+Las siguientes propiedades deben configurarse en tu repositorio de GitHub (Settings → Custom properties):
+
+**Propiedades requeridas:**
+- `SEMREL_MODE`: Modo de operación (`standard`, `issue-label`, o `disabled`)
+- `SEMREL_VERSION`: Versión de semantic-release a usar (`latest` o una versión específica como `v1.0.0`)
+
+**Propiedades opcionales:**
 - `SEMREL_FILE_VER`: Archivo donde se guarda la versión (default: `version.txt`)
 - `SEMREL_PATH_CHANGELOG`: Ruta al archivo CHANGELOG (default: `CHANGELOG.md`)
 - `SEMREL_COMMENT_COMMIT`: Mensaje del commit de release (default: automático)
@@ -112,26 +123,29 @@ Las siguientes propiedades se pueden configurar en el repositorio de GitHub:
 
 3. **Configurar secretos necesarios**:
 
-El workflow requiere acceso a:
-- `SEMREL_GITHUB_APP_ID`: ID de la GitHub App
-- `SEMREL_GITHUB_APP_PRIVATE_KEY`: Clave privada de la GitHub App
+El workflow requiere acceso a una GitHub App con los permisos adecuados. Configura los siguientes secretos en tu repositorio:
+
+- `SEMREL_GITHUB_APP_ID`: ID de tu GitHub App
+- `SEMREL_GITHUB_APP_PRIVATE_KEY`: Clave privada de tu GitHub App
+
+Para crear una GitHub App:
+1. Ve a Settings → Developer settings → GitHub Apps → New GitHub App
+2. Otorga los permisos: `contents: write`, `issues: write`, `pull-requests: write`
+3. Genera una clave privada
+4. Instala la App en tu organización/repositorio
+
+### Flujo de Trabajo Completo
+
+Una vez configurado, el workflow se ejecuta automáticamente cuando:
+- Se hace push a las ramas configuradas (`trunk`, `main`, `stable/**`, etc.)
+- Los cambios no están en rutas ignoradas (como `docs/**`)
+- El modo no está configurado como `disabled`
 
 ### Ejemplo con Modo Standard
 
-```yaml
-on:
-  push:
-    branches:
-      - trunk
-
-jobs:
-  release:
-    uses: bancolombia/semantic-release-reusable-workflows/.github/workflows/tool-semantic-release.yaml@trunk
-    with:
-      semantic_version: "latest"
-      semantic_release_mode: "standard"
-    secrets: inherit
-```
+Configura las propiedades del repositorio:
+- `SEMREL_MODE=standard`
+- `SEMREL_VERSION=latest`
 
 **Flujo de trabajo:**
 1. Haz commits siguiendo Conventional Commits
@@ -144,20 +158,9 @@ jobs:
 
 ### Ejemplo con Modo Issue-Label
 
-```yaml
-on:
-  push:
-    branches:
-      - trunk
-
-jobs:
-  release:
-    uses: bancolombia/semantic-release-reusable-workflows/.github/workflows/tool-semantic-release.yaml@trunk
-    with:
-      semantic_version: "latest"
-      semantic_release_mode: "issue-label"
-    secrets: inherit
-```
+Configura las propiedades del repositorio:
+- `SEMREL_MODE=issue-label`
+- `SEMREL_VERSION=latest`
 
 **Flujo de trabajo:**
 1. Crea un issue con una etiqueta `c:*` (ej: `c:new-feature`)
