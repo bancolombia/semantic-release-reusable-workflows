@@ -113,8 +113,8 @@ Las siguientes propiedades se pueden configurar en el repositorio de GitHub:
 3. **Configurar secretos necesarios**:
 
 El workflow requiere acceso a:
-- `APP_ID_TOOLKIT_INNERSOURCE`: ID de la GitHub App
-- `APP_PRIVATEKEY_TOOLKIT_INNERSOURCE`: Clave privada de la GitHub App
+- `SEMREL_GITHUB_APP_ID`: ID de la GitHub App
+- `SEMREL_GITHUB_APP_PRIVATE_KEY`: Clave privada de la GitHub App
 
 ### Ejemplo con Modo Standard
 

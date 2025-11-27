@@ -34,8 +34,8 @@ jobs:
         id: generate_token
         uses: actions/create-github-app-token@v2.2.0
         with:
-          app-id: ${{ secrets.APP_ID_TOOLKIT_INNERSOURCE }}
-          private-key: ${{ secrets.APP_PRIVATEKEY_TOOLKIT_INNERSOURCE }}
+          app-id: ${{ secrets.SEMREL_GITHUB_APP_ID }}
+          private-key: ${{ secrets.SEMREL_GITHUB_APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
       - name: Set token for GitHub CLI
         run: echo "GITHUB_TOKEN=${{ steps.generate_token.outputs.token }}" >> $GITHUB_ENV
@@ -93,8 +93,8 @@ jobs:
         id: generate_token
         uses: actions/create-github-app-token@v2.2.0
         with:
-          app-id: ${{ secrets.APP_ID_TOOLKIT_INNERSOURCE }}
-          private-key: ${{ secrets.APP_PRIVATEKEY_TOOLKIT_INNERSOURCE }}
+          app-id: ${{ secrets.SEMREL_GITHUB_APP_ID }}
+          private-key: ${{ secrets.SEMREL_GITHUB_APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
       - name: Set token for GitHub CLI
         run: echo "GITHUB_TOKEN=${{ steps.generate_token.outputs.token }}" >> $GITHUB_ENV
