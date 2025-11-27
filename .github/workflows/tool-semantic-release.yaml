@@ -30,12 +30,13 @@ jobs:
       #     sudo timedatectl set-timezone America/Bogota
       #   env:
       #     TZ: America/Bogota
-      - name: Generate token
+      - name: Generate a token of Github APP
         id: generate_token
-        uses: tibdex/github-app-token@32691ba7c9e7063bd457bd8f2a5703138591fa58 #v1.9.0
+        uses: actions/create-github-app-token@v2.2.0
         with:
-          app_id: ${{ secrets.APP_ID_TOOLKIT_OPENSOURCE }}
-          private_key: ${{ secrets.APP_PRIVATEKEY_TOOLKIT_OPENSOURCE }}
+          app-id: ${{ secrets.APP_ID_TOOLKIT_INNERSOURCE }}
+          private-key: ${{ secrets.APP_PRIVATEKEY_TOOLKIT_INNERSOURCE }}
+          owner: ${{ github.repository_owner }}
       - name: Set token for GitHub CLI
         run: echo "GITHUB_TOKEN=${{ steps.generate_token.outputs.token }}" >> $GITHUB_ENV
       - name: Checkout
@@ -43,38 +44,23 @@ jobs:
         with:
           fetch-tags: "true"
           token: ${{ steps.generate_token.outputs.token }}
-      # - name: Load properties of repository
-      #   env:
-      #     GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
-      #   run: |
-      #     npm i @octokit/core@7.0.2
-      #     node load-props-repository.mjs ${{ github.repository_owner }} ${{ github.event.repository.name }}
       - name: Load properties of repository
         run: |
           gh api -H "Accept: application/vnd.github+json" \
            -H "X-GitHub-Api-Version: 2022-11-28" \
             /repos/${{ github.repository_owner }}/${{ github.event.repository.name }}/properties/values --jq '.[] | "\(.property_name | ascii_upcase)=\(.value)"' \
             >> $GITHUB_ENV    
-      # echo "Hola ${{inputs.semantic_version}}"
-      # - name: Evaluate if property SEMANTIC_RELEASE_MODE is ENABLED or DISABLED
-      #   run: |
-      #     if [ "$SEMANTIC_RELEASE_MODE" = "DISABLED" ]; then
-      #       echo "🚫 Job stop: semantic-release is DISABLED"
-      #       exit 0 # o exit 1 si quieres que el job falle visiblemente
-      #     else
-      #       echo "✅ Job continue: semantic-release is ENABLED"
-      #     fi
       - name: Download files of configuration
         run: |
           TOKEN=$(gh auth token)
           #curl -L -H "Authorization: token $TOKEN" \
           #     -H "Accept: application/vnd.github.v3.raw" \
-          #     https://api.github.com/repos/bancolombia/semantic-bancolombia/contents/Tools/Semantic-Release/semantic-release.zip?ref=feature/semantic-release \
+          #     https://api.github.com/repos/bancolombia/semantic-release-reusable-workflows/contents/Tools/Semantic-Release/semantic-release.zip?ref=feature/semantic-release \
           #     -o semantic-release.zip
             if [ "${{inputs.semantic_version}}" = "latest" ]; then
-             gh release download --pattern '*.zip' --repo bancolombia/semantic-bancolombia
+             gh release download --pattern '*.zip' --repo bancolombia/semantic-release-reusable-workflows
             else
-             gh release download ${{inputs.semantic_version}} --pattern '*.zip' --repo bancolombia/semantic-bancolombia
+             gh release download ${{inputs.semantic_version}} --pattern '*.zip' --repo bancolombia/semantic-release-reusable-workflows
             fi
           unzip semantic-release.zip
           rm -f package.json package-lock.json # para evitar conflictos con el semantic-release
@@ -103,12 +89,13 @@ jobs:
       pull-requests: write # idem en PRs
       id-token: write # para npm provenance
     steps:
-      - name: Generate token
+      - name: Generate a token of Github APP
         id: generate_token
-        uses: tibdex/github-app-token@32691ba7c9e7063bd457bd8f2a5703138591fa58 #v1.9.0
+        uses: actions/create-github-app-token@v2.2.0
         with:
-          app_id: ${{ secrets.APP_ID_TOOLKIT_OPENSOURCE }}
-          private_key: ${{ secrets.APP_PRIVATEKEY_TOOLKIT_OPENSOURCE }}
+          app-id: ${{ secrets.APP_ID_TOOLKIT_INNERSOURCE }}
+          private-key: ${{ secrets.APP_PRIVATEKEY_TOOLKIT_INNERSOURCE }}
+          owner: ${{ github.repository_owner }}
       - name: Set token for GitHub CLI
         run: echo "GITHUB_TOKEN=${{ steps.generate_token.outputs.token }}" >> $GITHUB_ENV
       - name: Checkout
@@ -116,12 +103,6 @@ jobs:
         with:
           fetch-tags: "true"
           token: ${{ steps.generate_token.outputs.token }}
-      # - name: Load properties of repository
-      #   env:
-      #     GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
-      #   run: |
-      #     npm i @octokit/core@7.0.2
-      #     node load-props-repository.mjs ${{ github.repository_owner }} ${{ github.event.repository.name }}
       - name: Load properties of repository
         run: |
           gh api -H "Accept: application/vnd.github+json" \
@@ -134,12 +115,12 @@ jobs:
           TOKEN=$(gh auth token)
           #curl -L -H "Authorization: token $TOKEN" \
           #     -H "Accept: application/vnd.github.v3.raw" \
-          #     https://api.github.com/repos/bancolombia/semantic-bancolombia/contents/Tools/Semantic-Release/semantic-release.zip?ref=feature/semantic-release \
+          #     https://api.github.com/repos/bancolombia/semantic-release-reusable-workflows/contents/Tools/Semantic-Release/semantic-release.zip?ref=feature/semantic-release \
           #     -o semantic-release.zip
             if [ "${{inputs.semantic_version}}" = "latest" ]; then
-             gh release download --pattern '*.zip' --repo bancolombia/semantic-bancolombia
+             gh release download --pattern '*.zip' --repo bancolombia/semantic-release-reusable-workflows
             else
-             gh release download ${{inputs.semantic_version}} --pattern '*.zip' --repo bancolombia/semantic-bancolombia
+             gh release download ${{inputs.semantic_version}} --pattern '*.zip' --repo bancolombia/semantic-release-reusable-workflows
             fi
           unzip semantic-release.zip
           rm -f package.json package-lock.json # para evitar conflictos con el semantic-release

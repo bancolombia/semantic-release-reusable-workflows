@@ -26,12 +26,13 @@ jobs:
       SEMREL_MODE: ${{ steps.set_output.outputs.SEMREL_MODE }}
       SEMREL_VERSION: ${{ steps.set_output.outputs.SEMREL_VERSION }}
     steps:
-      - name: Generate token
+      - name: Generate a token of Github APP
         id: generate_token
-        uses: tibdex/github-app-token@32691ba7c9e7063bd457bd8f2a5703138591fa58 #v1.9.0
+        uses: actions/create-github-app-token@v2.2.0
         with:
-          app_id: ${{ secrets.APP_ID_TOOLKIT_INNERSOURCE }}
-          private_key: ${{ secrets.APP_PRIVATEKEY_TOOLKIT_INNERSOURCE }}
+          app-id: ${{ secrets.APP_ID_TOOLKIT_INNERSOURCE }}
+          private-key: ${{ secrets.APP_PRIVATEKEY_TOOLKIT_INNERSOURCE }}
+          owner: ${{ github.repository_owner }}
       - name: Set token for GitHub CLI
         run: echo "GITHUB_TOKEN=${{ steps.generate_token.outputs.token }}" >> $GITHUB_ENV 
       - name: Checkout

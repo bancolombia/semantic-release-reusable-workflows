@@ -4,11 +4,12 @@ const currentVersion = process.argv[4];
 // Obtener el tipo de release (major, minor, patch) desde los argumentos de la línea de comandos
 const releaseType = process.argv[3];
 const currentBranch = process.argv[2];
+const prerelease = process.argv[5];
 const releasesBranch = ["main", "master", "trunk"];
-console.log("vars: " + currentVersion + " - " + currentBranch + " - " + releaseType);
+console.log("vars: " + currentVersion + " - " + currentBranch + " - " + releaseType + " - " + prerelease);
 const LTS_Support = process.env.SEMREL_LTS_TYPE ; // Obtener la variable de entorno SEMANTIC_LTS_SUPPORT
 console.log("LTS_Support: " + LTS_Support);
-if(currentVersion != null){
+if(currentVersion != null && (String(prerelease).toUpperCase() === 'FALSE')){
 
     // Obtener el número de versión major y minor
     const [major, minor] = currentVersion.split('.');

@@ -77,7 +77,7 @@ module.exports = {
     [
       "@semantic-release/exec",
       {
-        prepareCmd: `node semantic-release/create-release-branch.js \${branch.name} \${nextRelease.type} \${lastRelease.version} && echo \${nextRelease.version} > ${versionFile}`,
+        prepareCmd: `node semantic-release/create-release-branch.js \${branch.name} \${nextRelease.type} \${lastRelease.version} \${branch.prerelease} && echo \${nextRelease.version} > ${versionFile}`,
       },
     ],
     [
