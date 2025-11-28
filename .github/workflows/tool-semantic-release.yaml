@@ -17,8 +17,7 @@ jobs:
   release-standard:
     name: release-standard
     if: ${{ inputs.semantic_release_mode == 'standard' }}
-    runs-on:
-      group: Temporal-Github
+    runs-on: ubuntu-latest
     permissions:
       contents: write # to be able to publish a GitHub release
       issues: write # to be able to comment on released issues
@@ -81,8 +80,7 @@ jobs:
   release-issue-label:
     name: release-issue-label
     if: ${{ inputs.semantic_release_mode == 'issue-label' }}
-    runs-on:
-      group: Temporal-Github
+    runs-on: ubuntu-latest
     permissions:
       contents: write # para crear el GitHub Release
       issues: write # para leer/comments en issues (por si acaso)
