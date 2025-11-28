@@ -61,7 +61,7 @@ Determina el tipo de release basándose en etiquetas de issues vinculados al Pul
 
 ### Configuración Básica
 
-1. **Crear un workflow en tu repositorio** (`.github/workflows/release.yml`):
+1. **Crear un workflow en tu repositorio** (`.github/workflows/semantic-release.yml`):
 
 ```yaml
 name: Semantic-Release
