@@ -52,10 +52,26 @@ Analiza los commits siguiendo la convención de [Conventional Commits](https://w
 Determina el tipo de release basándose en etiquetas de issues vinculados al Pull Request.
 
 **Mapeo de etiquetas a tipos de release:**
-- `c:bug` → `fixpatchrelease` → PATCH release
-- `c:vulns` → `securitypatchrelease` → PATCH release (seguridad)
-- `c:new-feature` → `featurerelease` → MINOR release
-- `c:breaking-change` → `breakingrelease` → MAJOR release
+*Etiquetas de Categorías**
+- `c: documentation`
+- `c: feature`
+- `c: bug`
+- `c: vulnerability`
+
+**Etiquetas Generales**
+- `g: good first issue`
+- `g: help wanted` 
+- `g: in triage` 
+- `g: assigned for triage` 
+- `g: question`
+
+**Etiquetas de Resolución**
+- `r: duplicade`
+- `r: fixed`
+- `r: solved`
+- `r: invalid`
+- `r: timeout`
+- `r: wontfix`
 
 ## 📝 Cómo Usar
 
